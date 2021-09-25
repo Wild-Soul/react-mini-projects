@@ -26,24 +26,38 @@ const AppProvider = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
 
   const fetchStories = async (url) => {
-    dispatch({type: SET_LOADING});
+    dispatch({ type: SET_LOADING });
     try {
       const response = await fetch(url);
       const data = await response.json();
-      dispatch({type: SET_STORIES, payload: {
-        hits: data.hits,
-        nbPages: data.nbPages
-      }});
+      dispatch({
+        type: SET_STORIES, payload: {
+          hits: data.hits,
+          nbPages: data.nbPages
+        }
+      });
     } catch (err) {
       console.log(err);
     }
   }
 
+  const removeStory = (id) => {
+    dispatch({ type: REMOVE_STORY, payload: { id } });
+  }
+
+  const handleSearch = (query) => {
+    dispatch({ type: HANDLE_SEARCH, payload: { query } })
+  }
+
+  const handlePage = (value) => {
+    dispatch({ type: HANDLE_PAGE, payload: { value } })
+  }
+
   useEffect(() => {
     fetchStories(`${API_ENDPOINT}query=${state.query}&page=${state.page}`);
-  }, []);
+  }, [state.query, state.page]);
 
-  return <AppContext.Provider value={{...state}}>{children}</AppContext.Provider>
+  return <AppContext.Provider value={{ ...state, removeStory, handleSearch, handlePage }}>{children}</AppContext.Provider>
 }
 // make sure use
 export const useGlobalContext = () => {
