@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useReducer } from 'react';
 // self created functions will be imported here.
 import reducer from './reducer'
+import { useAuth0 } from "@auth0/auth0-react";
 
 // import action types.
 import {
@@ -53,6 +54,23 @@ const AppProvider = ({ children }) => {
         }
     }
 
+    // verify user is logged in and then fetch the data for user.
+    const { isAuthenticated, user} = useAuth0();
+    const isUser = isAuthenticated && user;
+
+    const getFavouritesForUser = () => {
+        dispatch({
+            type: SET_MOVIES_LIST, payload: {
+                movies: [],
+                totalPages: 0,
+                page: 0
+            }
+        });
+        if (isUser) {
+
+        }
+    }
+
     // set up useEffect to fetch data on dependencies changes.
     useEffect(() => {
         // Build up the api endpoint.
@@ -67,10 +85,15 @@ const AppProvider = ({ children }) => {
             case TRENDING :
                 url = `${API_ENDPOINT}/trending/all/week?api_key=${process.env.REACT_APP_API_KEY}&page=${state.page}`;
                 break;
+            case FAVOURITES :
+                getFavouritesForUser();
+                break;
             default :
                 return;
         }
-        fetchMovies(url);
+        if(url) {   
+            fetchMovies(url);
+        }
     }, [state.page, state.tab]);
 
     const handlePage = (type) => {
@@ -78,6 +101,7 @@ const AppProvider = ({ children }) => {
     }
 
     const handleTabChange = (tab) => {
+        console.log(tab);
         dispatch({ type: SET_MOVIES_TYPE, payload: { tab } });
     }
 
