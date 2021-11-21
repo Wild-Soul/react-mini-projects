@@ -65,14 +65,38 @@ const AppProvider = ({ children }) => {
     }
 
     // verify user is logged in and then fetch the data for user.
-    const getFavouritesForUser = () => {
-
-        dispatch({
-            type: SET_MOVIES_LIST, payload: {
-                movies: [],
-                totalPages: 0,
-                page: 0
+    const getFavouriteMoviesOfUser = () => {
+        let token = window.sessionStorage.getItem("AuthToken");
+        let favMovies = [];
+        axios.get( 
+            `${SERVER_URL}/api/favourites`,
+            {headers: { Authorization: `Bearer ${token}` }}
+          ).then(async (res) => {
+            const data = res.data.data;
+            for(let i=0; i<data.length; i++) {
+                let entry = data[i];
+                let {movieId} = entry;
+                if (movieId) {
+                    // Should be handling this on server side rather than the client.
+                    let url = `${API_ENDPOINT}/movie/${movieId}?api_key=${process.env.REACT_APP_API_KEY}`;
+                    axios.get(url)
+                        .then(res => {
+                            favMovies.push(res.data);
+                        }).catch (err => {
+                            // do something
+                        });
+                }
             }
+            // list down all the favourite movies in one page only.
+            dispatch({
+                type: SET_MOVIES_LIST, payload: {
+                    movies: favMovies,
+                    totalPages: 1,
+                    page: 1
+                }
+            });
+        }).catch(err => {
+            // do something.
         });
     }
 
@@ -91,7 +115,7 @@ const AppProvider = ({ children }) => {
                 url = `${API_ENDPOINT}/trending/all/week?api_key=${process.env.REACT_APP_API_KEY}&page=${state.page}`;
                 break;
             case FAVOURITES :
-                getFavouritesForUser();
+                getFavouriteMoviesOfUser();
                 break;
             default :
                 return;
@@ -100,6 +124,34 @@ const AppProvider = ({ children }) => {
             fetchMovies(url);
         }
     }, [state.page, state.tab]);
+
+    // only runs when the browser reloads.
+    useEffect(() => {
+        console.log("USE EFFECT RUN TO GET USER TO LOGIN");
+        let token = window.sessionStorage.getItem("AuthToken");
+        axios.post(`${SERVER_URL}/api/login`, {},
+            {headers: { Authorization: `Bearer ${token}` }}
+        ).then(res => {
+            setLoggedInUser({
+                userName: state.userEmail,
+                isLoggedIn: true
+            });
+        }).catch(err => {
+            setLoggedInUser({
+                userName: '',
+                isLoggedIn: false
+            });
+            console.log("LOG IN FAILED");
+        })
+    }, []);
+
+    const logoutUser = () => {
+        window.sessionStorage.removeItem("LoginToken");
+        setLoggedInUser({
+            isLoggedIn: false,
+            userName: ''
+        });
+    }
 
     const handlePage = (type) => {
         dispatch({ type: SET_PAGE, payload: { type } })
@@ -166,7 +218,8 @@ const AppProvider = ({ children }) => {
         handleTabChange,
         handleLoginFormInput,
         handleLoginSignUp,
-        handleSaveToFavourites
+        handleSaveToFavourites,
+        logoutUser
     }}>
         {children}
     </AppContext.Provider>

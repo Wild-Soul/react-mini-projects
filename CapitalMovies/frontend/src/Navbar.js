@@ -3,7 +3,7 @@ import Modal from "./Modal";
 import { useGlobalContext } from './context';
 
 export const Navbar = () => {
-    const { loggedInUser, modalOpen, setModalOpen } = useGlobalContext();
+    const { loggedInUser, modalOpen, setModalOpen, logoutUser } = useGlobalContext();
     const isUser = loggedInUser.isLoggedIn;
 
 
@@ -13,7 +13,7 @@ export const Navbar = () => {
                 {isUser ? "You're now logged in" : "You're not logged in"}
             </div>
             {isUser ?
-                <button className="login-logout-btn" onClick={() => console.log("LOGGING OUT")}>logout</button>
+                <button className="login-logout-btn" onClick={logoutUser}>logout</button>
                 :
                 <button className="login-logout-btn" onClick={() => { setModalOpen(true) }}>login</button>
             }

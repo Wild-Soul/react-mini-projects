@@ -10,16 +10,10 @@ export const Movies = () => {
     }
 
     let isUser = loggedInUser.isLoggedIn;
-    if (tab === FAVOURITES) {
-        if (!isUser) {
-            return <div className="ask-for-login">
-                Please login to see favourites movies
-            </div>
-        } else {
-            return <div className="ask-for-login">
-                USER IS LOGGED IN.
-            </div>
-        }
+    if (!isUser && tab === FAVOURITES) {
+        return <div className="ask-for-login">
+            Please login to see favourites movies
+        </div>
     } else {
         return <section className="movies">
             {movies.map(movie => {
@@ -42,7 +36,7 @@ export const Movies = () => {
                             </div>
                         </div>
                     </article>
-                    {isUser &&
+                    {isUser && tab !== FAVOURITES &&
                         <button className="add-to-favourites" onClick={() => handleSaveToFavourites(id)}>
                             Add To Favourites.
                         </button>

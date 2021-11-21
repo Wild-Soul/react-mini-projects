@@ -15,7 +15,7 @@ const db = mysql.createConnection({
     database: "movies"
 });
 
-app.get('/api/register', (req, res) => {
+app.post('/api/register', (req, res) => {
     let reqBody = req.body;
     const user = {
         username: reqBody.username,
@@ -45,9 +45,22 @@ app.get('/api/register', (req, res) => {
     });
 });
 
-app.get('/api/login', (req, res) => {
+app.post('/api/login', (req, res) => {
     let reqBody = req.body;
-    if (reqBody) {
+    // If token is present then check the validity of the token. -- If it's valid then allow user to login.
+    const bearerHeader = req.headers['authorization'];
+    if (typeof bearerHeader !== 'undefined') {
+        const bearer = bearerHeader.split(' ');
+        const bearerToken = bearer[1];
+        req.token = bearerToken;
+        jwt.verify(req.token, 'secretkey', (err, authData) => {
+            if(authData) {
+                res.json({
+                    "status": "success"
+                });
+            }
+        });
+    } else if (reqBody) { // else login the user using the details provided in request body.
         let user =  {
             username: reqBody.username,
             password: reqBody.password
@@ -79,6 +92,7 @@ app.get('/api/login', (req, res) => {
 
 function verifyToken(req, res, next) {
     const bearerHeader = req.headers['authorization'];
+    console.log('--------header', bearerHeader);
     if (typeof bearerHeader !== 'undefined') {
         const bearer = bearerHeader.split(' ');
         const bearerToken = bearer[1];
@@ -123,6 +137,7 @@ app.post('/api/favourites', verifyToken, (req, res) => {
 
 app.get('/api/favourites', verifyToken, (req, res) => {
     jwt.verify(req.token, 'secretkey', (err, authData) => {
+        console.log("------", err);
         if(err) {
             res.sendStatus(403);
         } else {

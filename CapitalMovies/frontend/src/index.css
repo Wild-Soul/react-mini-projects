@@ -155,6 +155,7 @@ p {
 }
 
 .add-to-favourites {
+  cursor: pointer;
   background: var(--clr-primary-9);
   border: none;
   position: absolute;
