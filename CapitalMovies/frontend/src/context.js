@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useReducer } from 'react';
 // self created functions will be imported here.
 import reducer from './reducer'
-import { useAuth0 } from "@auth0/auth0-react";
+import axios from 'axios';
 
 // import action types.
 import {
@@ -55,10 +55,8 @@ const AppProvider = ({ children }) => {
     }
 
     // verify user is logged in and then fetch the data for user.
-    const { isAuthenticated, user} = useAuth0();
-    const isUser = isAuthenticated && user;
-
     const getFavouritesForUser = () => {
+
         dispatch({
             type: SET_MOVIES_LIST, payload: {
                 movies: [],
@@ -66,9 +64,6 @@ const AppProvider = ({ children }) => {
                 page: 0
             }
         });
-        if (isUser) {
-
-        }
     }
 
     // set up useEffect to fetch data on dependencies changes.

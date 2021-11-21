@@ -6,16 +6,11 @@ import { useAuth0 } from "@auth0/auth0-react";
 export const Movies = () => {
     const { isLoading, movies, tab } = useGlobalContext();
 
-    const { isAuthenticated, user } = useAuth0();
-
-    const isUser = isAuthenticated && user;
-
-    console.log("USER ", user);
-
     if (isLoading) {
         return <div className="spinner-container"></div>
     }
 
+    let isUser = false;
     if (tab === FAVOURITES) {
         if (!isUser) {
             return <div className="ask-for-login">
