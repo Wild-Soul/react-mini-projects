@@ -2,7 +2,9 @@ import {
     SET_LOADING,
     SET_MOVIES_TYPE,
     SET_MOVIES_LIST,
-    SET_PAGE
+    SET_PAGE,
+    SET_USER_EMAIL,
+    SET_USER_PASSWORD
 } from './actions'
 
 const reducer = (state, action) => {
@@ -34,6 +36,19 @@ const reducer = (state, action) => {
                 }
             }
             return { ...state, page: pageNumber };
+            break;
+        case SET_USER_EMAIL:
+            return {
+                ...state,
+                userEmail: action.payload.value,
+            };
+            break;
+        case SET_USER_PASSWORD:
+            return {
+                ...state,
+                userPassword: action.payload.value,
+            };
+            break;
         default :
             throw new Error('Not a valid action');
     }

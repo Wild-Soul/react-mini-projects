@@ -1,16 +1,15 @@
 import React from 'react';
 import { FAVOURITES } from './constants';
 import { useGlobalContext } from './context';
-import { useAuth0 } from "@auth0/auth0-react";
 
 export const Movies = () => {
-    const { isLoading, movies, tab } = useGlobalContext();
+    const { isLoading, movies, tab, loggedInUser, handleSaveToFavourites } = useGlobalContext();
 
     if (isLoading) {
         return <div className="spinner-container"></div>
     }
 
-    let isUser = false;
+    let isUser = loggedInUser.isLoggedIn;
     if (tab === FAVOURITES) {
         if (!isUser) {
             return <div className="ask-for-login">
@@ -25,7 +24,7 @@ export const Movies = () => {
         return <section className="movies">
             {movies.map(movie => {
                 const { id, title, overview, vote_average: voteAverage, vote_count: voteCount, release_date: releaseDate } = movie;
-                return <div key={id}>
+                return <div key={id} className="relative">
                     <article className="movie">
                         <div className="img">
                             <img src={movie.poster_path ? `http://image.tmdb.org/t/p/w500${movie.poster_path}` : 'default image'} alt="posterImage" />
@@ -44,8 +43,8 @@ export const Movies = () => {
                         </div>
                     </article>
                     {isUser &&
-                        <button className="add-to-favourites">
-                            Add To Fav.
+                        <button className="add-to-favourites" onClick={() => handleSaveToFavourites(id)}>
+                            Add To Favourites.
                         </button>
                     }
                 </div>

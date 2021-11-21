@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useReducer } from 'react';
+import React, { useContext, useEffect, useReducer, useState } from 'react';
 // self created functions will be imported here.
 import reducer from './reducer'
 import axios from 'axios';
@@ -8,12 +8,15 @@ import {
     SET_MOVIES_TYPE,
     SET_MOVIES_LIST,
     SET_LOADING,
-    SET_PAGE
+    SET_PAGE,
+    SET_USER_EMAIL,
+    SET_USER_PASSWORD
 } from './actions'
 
 // import constants.
 import {
     API_ENDPOINT,
+    SERVER_URL,
     DISCOVER,
     LATEST,
     FAVOURITES,
@@ -26,7 +29,9 @@ const initialState = {
     page: 1,
     totalPages: 1,
     singleMovie: {},
-    tab: DISCOVER // which tab are we currently at. [discover, favourites, latest, trending]
+    tab: DISCOVER, // which tab are we currently at. [discover, favourites, latest, trending]
+    userEmail: '',
+    userPassword: ''
 };
 
 const AppContext = React.createContext();
@@ -35,6 +40,11 @@ const AppProvider = ({ children }) => {
 
     // Set up reducer.
     const [state, dispatch] = useReducer(reducer, initialState);
+
+    // state to store loggedin user information.
+    const [loggedInUser, setLoggedInUser] = useState({});
+    // state for sign in / sign up modal.
+    const [modalOpen, setModalOpen] = useState();
 
     // Fetch movies from the API.
     const fetchMovies = async (url) => {
@@ -96,15 +106,67 @@ const AppProvider = ({ children }) => {
     }
 
     const handleTabChange = (tab) => {
-        console.log(tab);
         dispatch({ type: SET_MOVIES_TYPE, payload: { tab } });
     }
 
+    const handleLoginFormInput = (type, value) => {
+        if (type==="email") {
+            dispatch({ type: SET_USER_EMAIL, payload: { value } });
+        } else if (type==="password") {
+            dispatch({ type: SET_USER_PASSWORD, payload: { value } });
+        }
+    }
+
+    const handleLoginSignUp = () => {
+        axios.post(`${SERVER_URL}/api/login`, {
+            username: state.userEmail,
+            password: state.userPassword
+        }). then(res => {
+            let data = res.data;
+            setLoggedInUser({
+                userName: state.userEmail,
+                isLoggedIn: true
+            });
+            // RESET THE FORM INPUT FIELD
+            dispatch({ type: SET_USER_EMAIL, payload: { value: '' } });
+            dispatch({ type: SET_USER_PASSWORD, payload: { value: '' } });
+            // CLOSE LOGIN / SIGNUP MODAL.
+            setModalOpen(false);
+            //STORE THE AUTH TOKEN ON CLIENT SIDE SDESSION STORAGE.
+            console.log("USER SUCCESSFULLY LOGGED IN ");
+            window.sessionStorage.setItem("AuthToken", data.token);
+        }).catch(err => {
+            setLoggedInUser({
+                userName: '',
+                isLoggedIn: false
+            });
+            console.log("LOG IN FAILED");
+        })
+    }
+
+    const handleSaveToFavourites = (movieId) => {
+        console.log("ADDING MOVIE ", movieId, "TO FAVOURITES")
+        let token = window.sessionStorage.getItem("AuthToken");
+        axios.post( 
+            `${SERVER_URL}/api/favourites`,
+            {movieId},
+            {headers: { Authorization: `Bearer ${token}` }}
+          ).then((res) => {
+              console.log("ADDED TO FAVOURITES SUCCESFULLY");
+              console.log(res);
+          }).catch(console.log);
+    }
     // Set the value that'll be available all across the application.
     return <AppContext.Provider value={{
         ...state,
+        loggedInUser,
+        modalOpen,
+        setModalOpen,
         handlePage,
-        handleTabChange
+        handleTabChange,
+        handleLoginFormInput,
+        handleLoginSignUp,
+        handleSaveToFavourites
     }}>
         {children}
     </AppContext.Provider>
